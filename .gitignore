@@ -1,1 +1,4 @@
 backup
+
+# Do not add into repo all custom plugins
+plugins/custom/*.jar
