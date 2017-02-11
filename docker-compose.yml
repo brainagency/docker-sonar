@@ -1,33 +1,44 @@
 version: '2'
+
 volumes:
-  sonar-db-data:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_bundled-plugins:
+  postgresql:
+  postgresql_data:
+
 services:
-  sonar-db:
-    image: mysql
-    volumes:
-      - sonar-db-data:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=123456
+  db:
+    image: postgres
     networks:
-      - build
-  sonarqube:
-    image: sonarqube:alpine
-    links:
-      - sonar-db:db
-    ports:
-      - "19000:9000"
+      - sonarnet
     environment:
-      - SONARQUBE_JDBC_URL=jdbc:mysql://db/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance&createDatabaseIfNotExist=true
-      - SONARQUBE_JDBC_USERNAME=root
-      - SONARQUBE_JDBC_PASSWORD=123456
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      # This needs explicit mapping due to https://github.com/docker-library/postgres/blob/4e48e3228a30763913ece952c611e5e9b95c8759/Dockerfile.template#L52
+      - postgresql_data:/var/lib/postgresql/data
+  sonarqube:
+    image: sonarqube:6.2
+    ports:
+      - "9000:9000"
+    networks:
+      - sonarnet
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://db:5432/sonar
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
     volumes_from:
       - plugins
-    restart: always
-    networks:
-      - build
   plugins:
     build: plugins
     restart: never
+
 networks:
-  build:
-    driver: bridge    
+  sonarnet:
+    driver: bridge
