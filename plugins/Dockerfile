@@ -21,6 +21,9 @@ RUN wget https://sonarsource.bintray.com/Distribution/sonar-java-plugin/sonar-ja
 ENV JAVASCRIPT_VERSION 2.17.0.3154
 RUN wget https://sonarsource.bintray.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$JAVASCRIPT_VERSION.jar
 
+# Copy all custom plugins from a custom folder into sonarqube's plugins folder
+COPY custom/*.jar $PLUGINS_DIR
+
 VOLUME $PLUGINS_DIR
 
 CMD ls -asl $PLUGINS_DIR
